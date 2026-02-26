@@ -1,5 +1,4 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "@sveltejs/kit";
+import { json, type RequestHandler } from "@sveltejs/kit";
 import type {
   Ai,
   AiSearchChatCompletionsRequest,
@@ -16,7 +15,7 @@ const STREAM_HEADERS = {
   Connection: "keep-alive",
 } as const;
 
-function isValidMessageArray(data: unknown): data is Array<UI_MESSAGE> {
+function isValidMessageArray(data: unknown): data is UI_BULK_MESSAGE {
   return (
     Array.isArray(data) &&
     data.length > 0 &&
@@ -32,7 +31,7 @@ function isValidMessageArray(data: unknown): data is Array<UI_MESSAGE> {
   );
 }
 
-function formatMessages(messages: Array<UI_MESSAGE>): BULK_MESSAGE {
+function formatMessages(messages: UI_BULK_MESSAGE): BULK_MESSAGE {
   return messages.map((msg) => ({
     role: msg.role,
     content: msg.content ?? "",

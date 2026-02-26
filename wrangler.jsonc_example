@@ -16,5 +16,11 @@
   },
   "vars": {
     "AI_SEARCH_ID": "YOUR AI SEARCH ID",
-  },
+  }, 
+  "services": [
+    {
+      "binding": "DB",
+      "service": "YOUR DO SERVICE NAME", // refer its definition in common_types.d.ts
+    },
+  ],
 }

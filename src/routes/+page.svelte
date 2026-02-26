@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
-  import { Input } from "$lib/components/ui/input";
-  import { ScrollArea } from "$lib/components/ui/scroll-area";
+  import { Button, Input, ScrollArea } from "$lib";
   import { Send, LoaderCircle } from "lucide-svelte";
   import { marked } from "marked";
+  import type { PageProps } from "./$types";
 
-  let messages = $state<UI_MESSAGE[]>([]);
+  const { data: propData } = $props() as PageProps;
+  let messages = $state<UI_BULK_MESSAGE>(propData.savedMessages);
+  let bufferMessages = $state<UI_BULK_MESSAGE>([]);
   let inputValue = $state("");
   let scrollViewportRef: HTMLElement | null = $state(null);
   let isThinking = $state(false);
@@ -24,7 +25,15 @@
   $effect(() => {
     if (messages.length > 0) {
       scrollToBottom();
-    }
+    } else
+      messages = [
+        {
+          id: generateMessageId(),
+          content: `Hi there ${propData.ip || "guest"}! I'm your AI assistant. How can I help you today?`,
+          role: "assistant",
+          timestamp: new Date(),
+        },
+      ];
   });
 
   function generateMessageId(): string {
@@ -77,7 +86,7 @@
     const decoder = new TextDecoder();
     let buffer = "";
     let thinkingCleared = false;
-
+    const messageIndex = messages.findIndex((m) => m.id === assistantMessageId);
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -110,11 +119,18 @@
                   finish_reason: parsed.choices[0]?.finish_reason,
                   token_usage: parsed.usage,
                 });
+                if (messageIndex !== -1) {
+                  bufferMessages.push(messages[messageIndex]);
+                  const formData = new FormData();
+                  formData.append("messages", JSON.stringify(bufferMessages));
+                  formData.append("ip", propData.ip);
+                  await fetch("?/saveMessages", {
+                    method: "POST",
+                    body: formData,
+                  });
+                }
               }
               if (content) {
-                const messageIndex = messages.findIndex(
-                  (m) => m.id === assistantMessageId,
-                );
                 if (messageIndex !== -1) {
                   messages[messageIndex].content += content;
                   messages = messages;
@@ -139,6 +155,7 @@
     const assistantMessageId = generateMessageId();
     const assistantMessage = createAssistantMessage(assistantMessageId);
 
+    bufferMessages = [userMessage];
     messages = [...messages, userMessage, assistantMessage];
     inputValue = "";
     isThinking = true;
@@ -185,15 +202,38 @@
       sendMessage();
     }
   }
+
+  async function deleteHistory() {
+    messages = [];
+    const formData = new FormData();
+    formData.append("ip", propData.ip);
+    await fetch("?/deleteHistory", {
+      method: "POST",
+      body: formData,
+    });
+  }
 </script>
 
 <div class="flex h-dvh flex-col bg-slate-950 text-slate-50">
   <!-- Header -->
   <header
-    class="border-b border-slate-800 bg-slate-900 px-4 py-3 sm:px-6 sm:py-4"
+    class="border-b border-slate-800 bg-slate-900 px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between"
   >
-    <h1 class="text-lg sm:text-2xl font-bold">Chat Assistant</h1>
-    <p class="text-xs sm:text-sm text-slate-400">Professional chat interface</p>
+    <div>
+      <h1 class="text-lg sm:text-2xl font-bold">Chat Assistant</h1>
+      <p class="text-xs sm:text-sm text-slate-400">
+        Professional chat interface
+      </p>
+    </div>
+    <Button
+      onclick={deleteHistory}
+      variant="outline"
+      size="sm"
+      class="text-xs sm:text-sm"
+      aria-label="Delete chat history"
+    >
+      Delete History
+    </Button>
   </header>
 
   <!-- Messages Container -->

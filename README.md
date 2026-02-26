@@ -6,6 +6,7 @@ A modern, performant chat interface powered by Cloudflare AI Search. Built with 
 
 - **Real-time Chat Interface**: Clean, responsive chat UI with markdown support for AI responses
 - **AI-Powered Search**: Leverages Cloudflare AI Search for intelligent query processing
+- **Chat History Management**: Persistent chat history with delete functionality powered by Cloudflare Durable Objects
 - **Performance Optimized**: Uses `requestAnimationFrame` for smooth scrolling, efficient state management
 - **Type Safe**: Full TypeScript support with strict type checking
 - **Error Handling**: Comprehensive error handling with timeout protection and graceful fallbacks
@@ -20,6 +21,7 @@ A modern, performant chat interface powered by Cloudflare AI Search. Built with 
 - **Icons**: [Lucide Svelte](https://lucide.dev/) - Beautiful icon set
 - **Markdown**: [marked](https://marked.js.org/) - Markdown parser and renderer
 - **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com/) - Serverless edge computing
+- **State Management**: [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/) - Persistent chat history storage
 
 ## Prerequisites
 
@@ -28,6 +30,7 @@ A modern, performant chat interface powered by Cloudflare AI Search. Built with 
 - Cloudflare account with:
   - AI Search instance configured
   - Workers enabled
+  - Durable Objects enabled
 
 ## Setup
 
@@ -63,6 +66,15 @@ Edit `wrangler.jsonc` and add your Cloudflare credentials:
   },
   "ai": {
     "binding": "AI",
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DB",
+        "class_name": "ChatRoom",
+        "script_name": "demo-ui",
+      },
+    ],
   },
   "vars": {
     "AI_SEARCH_ID": "your-ai-search-id-here",
@@ -186,6 +198,7 @@ Sends a message to the AI and receives a response.
 - **Scroll Performance**: Uses `requestAnimationFrame` instead of `setTimeout` for smooth animations
 - **Derived State**: Leverages Svelte 5's `$derived` for computed values
 - **Native AI Binding**: Uses Cloudflare's native Workers AI binding for optimal performance and reliability
+- **Durable Objects**: Leverages Cloudflare Durable Objects for low-latency, persistent chat history
 - **Environment Validation**: Upfront validation of required environment variables
 - **Efficient Rendering**: Conditional rendering to avoid unnecessary DOM updates
 
@@ -206,6 +219,10 @@ Sends a message to the AI and receives a response.
 - **Comments**: Strategic comments only where logic isn't self-evident
 
 ## Troubleshooting
+
+### "DB binding not found"
+
+Ensure `wrangler.jsonc` has the `durable_objects` binding configured for the `ChatRoom` class and you've run `bun run cf-typegen`.
 
 ### "AI binding not found"
 

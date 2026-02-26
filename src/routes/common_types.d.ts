@@ -3,6 +3,8 @@ type UI_MESSAGE = {
   timestamp: Date;
 } & SINGLE_MESSAGE;
 
+type UI_BULK_MESSAGE = Array<UI_MESSAGE>;
+
 type SINGLE_MESSAGE = {
   content: string | null;
   role: "system" | "developer" | "user" | "assistant" | "tool";
@@ -52,3 +54,10 @@ interface ChatCompletionChunk {
 interface DoneMessage {
   data: "[DONE]";
 }
+
+type ChatRoomStubAPI = {
+  getMessages(roomId: string): Promise<UI_BULK_MESSAGE>;
+  saveMessage(roomId: string, message: UI_MESSAGE): Promise<boolean>;
+  clearMessages(roomId: string): Promise<void>;
+  deleteMessage(roomId: string, messageId: string): Promise<void>;
+};
