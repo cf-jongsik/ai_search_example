@@ -95,6 +95,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 
     const chatCompletionBody = {
       messages: formatMessages(messages),
+      max_tokens: 32000,
       stream: true,
     } satisfies AiSearchChatCompletionsRequest;
 
